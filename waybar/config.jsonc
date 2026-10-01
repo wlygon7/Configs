@@ -1,0 +1,26 @@
+{
+  "layer": "top",
+  "exclusive": false,
+  "position": "top",
+  "height": 30,
+  "margin-top": 4,
+  "margin-left": 12,
+  "margin-right": 12,
+  "spacing": 8,
+  "modules-left": ["hyprland/workspaces"],
+  "modules-center": [],
+  "mpris": {
+    "format": "{title} - {artist}",
+    "format-paused": "paused: {title}",
+    "max-length": 40,
+    "player": "spotify",
+    "on-click": "playerctl -p spotify play-pause"
+  },
+  "modules-right": ["tray"],
+  "hyprland/workspaces": { "format": "{id}", "on-click": "activate" },
+  "clock": { "format": "{:%a %b %d   %H:%M}", "on-click": "qs -c panel ipc call panel toggle"},
+  "wireplumber": { "format": "vol {volume}%", "format-muted": "muted", "on-click": "pavucontrol" },
+  "cpu": { "format": "cpu {usage}%" },
+  "memory": { "format": "ram {percentage}%" },
+  "tray": { "spacing": 10 }
+}

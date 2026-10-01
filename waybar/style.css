@@ -1,0 +1,42 @@
+@import "/home/wlygon7/.config/waybar/colors.css";
+
+* {
+  font-family: "Noto Sans", sans-serif;
+  font-size: 13px;
+  border: none;
+  min-height: 0;
+}
+
+window#waybar {
+  background: transparent;
+  color: @on_surface;
+}
+
+#workspaces, #clock, #tray, #wireplumber, #cpu, #memory {
+  background: alpha(@surface, 0.55);
+  border: 1px solid alpha(@on_surface, 0.10);
+  border-radius: 14px;
+  padding: 0 14px;
+  margin: 0 2px;
+}
+
+#workspaces { padding: 0 6px; }
+
+#workspaces button {
+  color: alpha(@on_surface, 0.55);
+  padding: 0 8px;
+  border-radius: 10px;
+  background: transparent;
+}
+
+#workspaces button.active {
+  color: @on_primary_container;
+  background: @primary_container;
+}
+
+#workspaces button:hover {
+  background: alpha(@on_surface, 0.08);
+  box-shadow: none;
+}
+
+#wireplumber.muted { color: alpha(@on_surface, 0.45); }

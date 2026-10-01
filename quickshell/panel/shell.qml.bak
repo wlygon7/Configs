@@ -1,0 +1,330 @@
+pragma ComponentBehavior: Bound
+
+import QtQuick
+import QtQuick.Layouts
+import Quickshell
+import Quickshell.Io
+import Quickshell.Wayland
+import Quickshell.Hyprland
+import Quickshell.Services.Mpris
+import Quickshell.Services.Pipewire
+
+ShellRoot {
+    id: root
+
+    property bool open: false
+
+    Colors { id: c }
+
+    SystemClock { id: clock; precision: SystemClock.Minutes }
+
+    IpcHandler {
+        target: "panel"
+        function toggle(): void { root.open = !root.open }
+        function close(): void { root.open = false }
+    }
+
+    // Spotify only, so the wallpaper video never shows up as "music"
+    readonly property var player: {
+        const list = Mpris.players.values
+        return list.find(p => p.dbusName.toLowerCase().includes("spotify")) ?? null
+    }
+    readonly property var sink: Pipewire.defaultAudioSink
+    readonly property real vol: sink?.audio?.volume ?? 0
+
+    PwObjectTracker { objects: [root.sink] }
+    property bool wifiOn: false
+    property bool btOn: false
+    property bool dnd: false
+
+    Process {
+        id: wifiProc
+        command: ["nmcli", "radio", "wifi"]
+        stdout: StdioCollector { onStreamFinished: root.wifiOn = text.trim() === "enabled" }
+    }
+    Process {
+        id: btProc
+        command: ["sh", "-c", "bluetoothctl show | grep -q 'Powered: yes' && echo yes || echo no"]
+        stdout: StdioCollector { onStreamFinished: root.btOn = text.trim() === "yes" }
+    }
+    Process {
+        id: dndProc
+        command: ["dunstctl", "is-paused"]
+        stdout: StdioCollector { onStreamFinished: root.dnd = text.trim() === "true" }
+    }
+
+    function refreshToggles() {
+        wifiProc.running = true
+        btProc.running = true
+        dndProc.running = true
+    }
+
+    Timer {
+        running: root.open
+        interval: 2000
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: root.refreshToggles()
+    }
+
+    Timer { id: refreshSoon; interval: 400; onTriggered: root.refreshToggles() }
+    Timer {
+        running: root.open && root.player !== null && root.player.isPlaying
+        interval: 1000
+        repeat: true
+        onTriggered: root.player.positionChanged()
+    }
+
+    PanelWindow {
+        id: panel
+        visible: root.open
+        color: "transparent"
+        anchors { top: true }
+        margins { top: 52 }
+        implicitWidth: 420
+        implicitHeight: content.implicitHeight + 28
+        exclusionMode: ExclusionMode.Ignore
+        WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.namespace: "qs-panel"
+        WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+
+        HyprlandFocusGrab {
+            windows: [panel]
+            active: root.open
+            onCleared: root.open = false
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            radius: 22
+            color: Qt.alpha(c.surface, 0.60)
+            border.width: 1
+            border.color: Qt.alpha(c.on_surface, 0.12)
+
+            ColumnLayout {
+                id: content
+                anchors { left: parent.left; right: parent.right; top: parent.top; margins: 14 }
+                spacing: 12
+
+                // Header: time and date
+                RowLayout {
+                    Layout.fillWidth: true
+                    Text {
+                        text: Qt.formatDateTime(clock.date, "HH:mm")
+                        color: c.on_surface
+                        font.pixelSize: 30
+                        font.bold: true
+                    }
+                    Item { Layout.fillWidth: true }
+                    Text {
+                        text: Qt.formatDateTime(clock.date, "dddd, MMM d")
+                        color: Qt.alpha(c.on_surface, 0.65)
+                        font.pixelSize: 13
+                    }
+                }
+
+                // Quick toggles
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Repeater {
+                        model: [
+                            { label: "Wi-Fi", on: root.wifiOn, cmd: ["nmcli", "radio", "wifi", root.wifiOn ? "off" : "on"] },
+                            { label: "Bluetooth", on: root.btOn, cmd: ["bluetoothctl", "power", root.btOn ? "off" : "on"] },
+                            { label: "Do not disturb", on: root.dnd, cmd: ["dunstctl", "set-paused", "toggle"] }
+                        ]
+                        delegate: Rectangle {
+                            id: tile
+                            required property var modelData
+                            Layout.fillWidth: true
+                            Layout.preferredWidth: 100
+                            implicitHeight: 46
+                            radius: 14
+                            color: tile.modelData.on ? Qt.alpha(c.primary, 0.40) : Qt.alpha(c.on_surface, 0.08)
+                            border.width: 1
+                            border.color: Qt.alpha(c.on_surface, 0.10)
+
+                            Column {
+                                anchors.centerIn: parent
+                                spacing: 1
+                                Text {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: tile.modelData.label
+                                    color: c.on_surface
+                                    font.pixelSize: 12
+                                    font.bold: true
+                                }
+                                Text {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: tile.modelData.on ? "on" : "off"
+                                    color: Qt.alpha(c.on_surface, 0.65)
+                                    font.pixelSize: 11
+                                }
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: {
+                                    Quickshell.execDetached(tile.modelData.cmd)
+                                    refreshSoon.restart()
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Media card
+                Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: mediaCol.implicitHeight + 24
+                    radius: 16
+                    color: Qt.alpha(c.on_surface, 0.07)
+
+                    ColumnLayout {
+                        id: mediaCol
+                        anchors { left: parent.left; right: parent.right; top: parent.top; margins: 12 }
+                        spacing: 10
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 12
+
+                            Rectangle {
+                                Layout.preferredWidth: 76
+                                Layout.preferredHeight: 76
+                                radius: 10
+                                color: Qt.alpha(c.on_surface, 0.10)
+                                Image {
+                                    anchors.fill: parent
+                                    source: root.player?.trackArtUrl ?? ""
+                                    fillMode: Image.PreserveAspectCrop
+                                    asynchronous: true
+                                }
+                            }
+
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 2
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: root.player?.trackTitle ?? "Nothing playing"
+                                    color: c.on_surface
+                                    font.pixelSize: 15
+                                    font.bold: true
+                                    elide: Text.ElideRight
+                                }
+                                Text {
+                                    Layout.fillWidth: true
+                                    text: root.player?.trackArtist ?? ""
+                                    color: Qt.alpha(c.on_surface, 0.65)
+                                    font.pixelSize: 12
+                                    elide: Text.ElideRight
+                                }
+                                RowLayout {
+                                    spacing: 8
+                                    Repeater {
+                                        model: ["prev", root.player && root.player.isPlaying ? "pause" : "play", "next"]
+                                        delegate: Rectangle {
+                                            id: btn
+                                            required property string modelData
+                                            required property int index
+                                            implicitWidth: label.implicitWidth + 24
+                                            implicitHeight: 28
+                                            radius: 14
+                                            color: ma.containsMouse ? Qt.alpha(c.primary, 0.35) : Qt.alpha(c.on_surface, 0.10)
+                                            Text {
+                                                id: label
+                                                anchors.centerIn: parent
+                                                text: btn.modelData
+                                                color: c.on_surface
+                                                font.pixelSize: 12
+                                            }
+                                            MouseArea {
+                                                id: ma
+                                                anchors.fill: parent
+                                                hoverEnabled: true
+                                                onClicked: {
+                                                    if (!root.player) return
+                                                    if (btn.index === 0) root.player.previous()
+                                                    else if (btn.index === 1) root.player.togglePlaying()
+                                                    else root.player.next()
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Progress bar
+                        Rectangle {
+                            Layout.fillWidth: true
+                            implicitHeight: 4
+                            radius: 2
+                            color: Qt.alpha(c.on_surface, 0.15)
+                            Rectangle {
+                                width: parent.width * (root.player && root.player.length > 0
+                                    ? Math.min(1, root.player.position / root.player.length) : 0)
+                                height: parent.height
+                                radius: 2
+                                color: c.primary
+                            }
+                        }
+                    }
+                }
+
+                // Volume
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 10
+
+                    Text {
+                        text: root.sink?.audio?.muted ? "mute" : "vol"
+                        color: c.on_surface
+                        font.pixelSize: 13
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: if (root.sink?.audio) root.sink.audio.muted = !root.sink.audio.muted
+                        }
+                    }
+
+                    Item {
+                        Layout.fillWidth: true
+                        implicitHeight: 24
+                        Rectangle {
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: parent.width
+                            height: 6
+                            radius: 3
+                            color: Qt.alpha(c.on_surface, 0.15)
+                            Rectangle {
+                                width: parent.width * Math.min(1, root.vol)
+                                height: parent.height
+                                radius: 3
+                                color: c.primary
+                            }
+                        }
+                        MouseArea {
+                            anchors.fill: parent
+                            function setFrom(x) {
+                                if (root.sink?.audio)
+                                    root.sink.audio.volume = Math.max(0, Math.min(1, x / width))
+                            }
+                            onPressed: mouse => setFrom(mouse.x)
+                            onPositionChanged: mouse => setFrom(mouse.x)
+                        }
+                    }
+
+                    Text {
+                        text: Math.round(root.vol * 100) + "%"
+                        color: Qt.alpha(c.on_surface, 0.65)
+                        font.pixelSize: 13
+                        Layout.preferredWidth: 38
+                        horizontalAlignment: Text.AlignRight
+                    }
+                }
+            }
+        }
+    }
+}
