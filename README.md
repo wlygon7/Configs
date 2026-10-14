@@ -1,21 +1,21 @@
 # Configs
 
-My Hyprland desktop dotfiles. The wallpaper sets the colors: [matugen](https://github.com/InioX/matugen) generates a palette from it and writes it into the bar, launcher, terminal, GTK apps and Neovim, so everything matches.
+My CachyOS Hyprland dotfiles for my daily machine. What I like most is how [matugen](https://github.com/InioX/matugen) pulls a palette from my active wallpaper and pushes it into the bar, launcher, terminal, GTK apps and Neovim, so everything matches automatically.
 
-<!-- Add a screenshot here: ![desktop](screenshots/desktop.png) -->
+<!-- SCREENSHOT -->
 
 ## What's in here
 
 | Folder       | What it configures |
 |--------------|--------------------|
-| `hypr/`      | [Hyprland](https://hypr.land) (Lua config), hyprpaper, and the Odyssey shell integration |
-| `waybar/`    | Top bar: workspaces + tray |
+| `hypr/`      | [Hyprland](https://hypr.land) (Lua config) and hyprpaper |
+| `waybar/`    | Top bar with workspaces and tray |
 | `quickshell/`| [Quickshell](https://quickshell.org) widgets: a `panel` (system stats, quick toggles) and an `osd` (volume popup) |
 | `kitty/`     | Terminal |
 | `wofi/`      | App launcher |
-| `nvim/`      | [LazyVim](https://lazyvim.org) setup, colors driven by matugen through `mini.base16` |
-| `gtk-3.0/`, `gtk-4.0/` | GTK theme overrides (Breeze-Dark base, matugen colors on top) |
-| `matugen/`   | The color templates and where each one gets written |
+| `nvim/`      | [LazyVim](https://lazyvim.org), with colors fed in by matugen through `mini.base16` |
+| `gtk-3.0/`, `gtk-4.0/` | GTK overrides (Breeze-Dark base, matugen colors on top) |
+| `matugen/`   | Color templates and where each one gets written |
 
 ## How the colors work
 
@@ -28,58 +28,55 @@ My Hyprland desktop dotfiles. The wallpaper sets the colors: [matugen](https://g
 | `Colors.qml`         | `quickshell/panel/Colors.qml`, `quickshell/osd/Colors.qml` |
 | `gtk-adwaita.css`    | `gtk-3.0/gtk.css`, `gtk-4.0/gtk.css` |
 
-To regenerate everything from a new wallpaper:
+To redo everything from a new wallpaper:
 
 ```sh
 matugen image /path/to/wallpaper.jpg
 ```
 
-Generated files are committed, so the setup still looks right before you run matugen.
-
 ## Dependencies
 
-**Core:** `hyprland` (a version with Lua config support), `hyprpaper`, `waybar`, `kitty`, `wofi`, `matugen`, `neovim`
+**Core:** `hyprland` (needs a version with Lua config support), `hyprpaper`, `waybar`, `kitty`, `wofi`, `matugen`, `neovim`
 
-**Used by the config:**
-- `quickshell` — panel and OSD
-- `hyprpolkitagent` — auth prompts
-- `awww` — wallpaper daemon
-- `cliphist`, `wl-clipboard` — clipboard history
-- `flameshot` — screenshots
-- `playerctl`, `brightnessctl`, `pavucontrol` — media, brightness, audio
-- `thunar` — file manager
-- `nvidia-smi` — GPU stats in the Quickshell panel (optional; shows 0 without it)
-- Odyssey — launcher, notifications, control center, lock screen (see `hypr/odyssey.lua`)
+**Also used:**
+- `quickshell` for the panel and OSD
+- `hyprpolkitagent` for auth prompts
+- `awww` for the wallpaper daemon
+- `cliphist` and `wl-clipboard` for clipboard history
+- `flameshot` for screenshots
+- `playerctl`, `brightnessctl`, `pavucontrol` for media, brightness and audio
+- `thunar` for files
+- `nvidia-smi` for GPU stats in the Quickshell panel (optional, shows 0 without it)
 
 **Themes:** Breeze-Dark (GTK), Sweet-cursors, Vivid-Glassy-Dark-Icons, Noto Sans
 
 ## Install
 
-> Back up your own `~/.config` first. These files will overwrite what's there.
+Back up your own `~/.config` first. This will overwrite what's there.
 
 ```sh
 git clone https://github.com/wlygon7/Configs.git ~/Configs
 cd ~/Configs
 
-# Symlink each folder into ~/.config
+# symlink each folder into ~/.config
 for dir in gtk-3.0 gtk-4.0 hypr kitty matugen nvim quickshell waybar wofi; do
   ln -sfn "$PWD/$dir" "$HOME/.config/$dir"
 done
 ```
 
-Then log into Hyprland.
+Then log out/back into Hyprland.
 
-**Heads up:** a few files have my home path (`/home/wlygon7/...`) hard-coded. Search and swap in your own before using them:
+A few files hardcode my home path (`/home/wlygon7/...`), so swap in yours:
 
 ```sh
 grep -rn '/home/wlygon7' .
 ```
 
-Mainly `hypr/hyprland.lua`, `hypr/odyssey.lua`, `hypr/hyprpaper.conf`, `waybar/style.css`, `wofi/style.css` and `quickshell/panel/shell.qml`.
+The main ones are `hypr/hyprland.lua`, `hypr/hyprpaper.conf`, `waybar/style.css`, `wofi/style.css` and `quickshell/panel/shell.qml`.
 
 ## Keybinds
 
-`SUPER` is the main modifier.
+`SUPER` is the main modifier (Windows Key for Windows, Command for MacOS).
 
 | Keys | Action |
 |------|--------|
@@ -87,27 +84,22 @@ Mainly `hypr/hyprland.lua`, `hypr/odyssey.lua`, `hypr/hyprpaper.conf`, `waybar/s
 | `SUPER + Q` | Close window |
 | `SUPER + E` | File manager |
 | `SUPER + R` | Wofi launcher |
-| `SUPER + A` | Odyssey launcher |
-| `SUPER + Space` | Control center |
 | `SUPER + V` | Clipboard history |
-| `SUPER + N` | Notifications |
 | `SUPER + W` | Wallpaper picker |
 | `SUPER + F` | Fullscreen |
 | `SUPER + SHIFT + F` | Toggle floating |
 | `SUPER + S` | Scratchpad workspace |
-| `SUPER + L` | Lock |
 | `SUPER + SHIFT + S` | Screenshot a region |
 | `SUPER + SHIFT + R` | Record a region |
 | `Home` | Flameshot |
-| `SUPER + 1–0` | Switch workspace |
-| `SUPER + SHIFT + 1–0` | Move window to workspace |
+| `SUPER + 1-0` | Switch workspace |
+| `SUPER + SHIFT + 1-0` | Move window to workspace |
 | `SUPER + arrows` | Move focus |
 | `SUPER + SHIFT + arrows` | Swap windows |
-| `SUPER + CTRL + ←/→` | Move window to the left/right monitor |
+| `SUPER + CTRL + ←/→` | Send window to the left/right monitor |
 | `SUPER + CTRL + ALT + Q` | Exit Hyprland |
 
-The full list is in `hypr/hyprland.lua` and `hypr/odyssey.lua`.
-
+The full list is in `hypr/hyprland.lua`.
 ## Credits
 
 - Neovim config started from the [LazyVim starter](https://github.com/LazyVim/starter) (Apache 2.0, see `nvim/LICENSE`)
