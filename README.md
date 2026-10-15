@@ -2,7 +2,7 @@
 
 My CachyOS Hyprland dotfiles for my daily machine. What I like most is how [matugen](https://github.com/InioX/matugen) pulls a palette from my active wallpaper and pushes it into the bar, launcher, terminal, GTK apps and Neovim, so everything matches automatically.
 
-<!-- SCREENSHOT -->
+![](Desktop.png)
 
 ## What's in here
 
