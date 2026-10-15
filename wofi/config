@@ -1,5 +1,5 @@
-width=520
-height=380
+width=560
+height=440
 location=center
 show=drun
 prompt=Search
@@ -13,3 +13,5 @@ insensitive=true
 allow_images=true
 image_size=28
 gtk_dark=true
+hide_scroll=true
+term=kitty

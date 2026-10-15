@@ -1,35 +1,79 @@
+/* Matches the Quickshell bar's popouts: glass card, pill search, soft selection.
+   Colours come from matugen (colors.css). */
 @import "/home/wlygon7/.config/wofi/colors.css";
 
-window { background: transparent; }
+* {
+  font-family: "Noto Sans", sans-serif;
+  font-size: 14px;
+}
 
+window {
+  background: transparent;
+}
+
+/* The margin leaves room for the shadow inside wofi's window */
 #outer-box {
-  margin: 0;
+  margin: 14px;
   padding: 14px;
-  background: alpha(@surface, 0.55);
-  border: 1px solid alpha(@on_surface, 0.12);
-  border-radius: 18px;
+  background: linear-gradient(alpha(@surface_container_high, 0.90), alpha(@surface_container, 0.90));
+  border: 1px solid alpha(@on_surface, 0.10);
+  border-radius: 22px;
+  box-shadow: 0 8px 24px alpha(black, 0.35);
 }
 
 #input {
-  margin-bottom: 10px;
-  padding: 10px 14px;
-  border: none;
-  border-radius: 12px;
-  background: alpha(@on_surface, 0.08);
+  margin-bottom: 12px;
+  padding: 10px 16px;
+  min-height: 22px;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  background: alpha(@on_surface, 0.07);
   color: @on_surface;
+  caret-color: @primary;
   box-shadow: none;
+  outline: none;
 }
 
-#scroll { margin: 0; }
+#input:focus {
+  border-color: alpha(@primary, 0.55);
+}
+
+#input image {
+  color: @on_surface_variant;
+}
+
+#scroll {
+  margin: 0;
+}
+
+scrollbar {
+  opacity: 0;
+}
 
 #entry {
-  padding: 8px 10px;
-  border-radius: 10px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  border: none;
+  outline: none;
 }
 
-#entry:selected { background: alpha(@primary, 0.30); }
+#entry:selected {
+  background: alpha(@primary, 0.18);
+}
+
+#entry:hover:not(:selected) {
+  background: alpha(@on_surface, 0.06);
+}
 
 #text {
   color: @on_surface;
-  margin-left: 8px;
+  margin-left: 10px;
+}
+
+#entry:selected #text {
+  color: @primary;
+}
+
+#img {
+  border-radius: 8px;
 }

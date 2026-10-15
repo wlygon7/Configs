@@ -27,3 +27,55 @@ output_path = '~/.config/gtk-3.0/gtk.css'
 [templates.gtk4]
 input_path = '~/.config/matugen/templates/gtk-adwaita.css'
 output_path = '~/.config/gtk-4.0/gtk.css'
+
+[templates.quickshell_widgets]
+input_path = '~/.config/matugen/templates/Colors.qml'
+output_path = '~/.config/quickshell/widgets/Colors.qml'
+
+[templates.quickshell_shell]
+input_path = '~/.config/matugen/templates/Colors.qml'
+output_path = '~/.config/quickshell/shell/Colors.qml'
+
+[templates.dunst]
+input_path = '~/.config/matugen/templates/dunst-colors.conf'
+output_path = '~/.config/dunst/dunstrc.d/50-colors.conf'
+post_hook = 'dunstctl reload'
+
+[templates.hyprland]
+input_path = '~/.config/matugen/templates/hypr-colors.lua'
+output_path = '~/.config/hypr/colors.lua'
+post_hook = 'hyprctl reload'
+
+# ANSI colours for kitty. Red, green and yellow keep their hue; the rest blend with the wallpaper.
+[config.custom_colors]
+red = { color = "#e05561", blend = false }
+green = { color = "#8cc265", blend = false }
+yellow = { color = "#e6b450", blend = false }
+blue = "#4aa5f0"
+magenta = "#c162de"
+cyan = "#42b3c2"
+orange = { color = "#e8905a", blend = false }
+
+[templates.btop]
+input_path = '~/.config/matugen/templates/btop.theme'
+output_path = '~/.config/btop/themes/matugen.theme'
+
+[templates.starship]
+input_path = '~/.config/matugen/templates/starship.toml'
+output_path = '~/.config/starship.toml'
+
+[templates.nvim]
+input_path = '~/.config/matugen/templates/nvim-colors.lua'
+output_path = '~/.config/nvim/lua/plugins/matugen.lua'
+
+[templates.zen]
+input_path = '~/.config/matugen/templates/zen-user.js'
+output_path = '/home/wlygon7/.config/zen/aekq9c25.Default (release)/user.js'
+
+[templates.qt6ct]
+input_path = '~/.config/matugen/templates/qt6ct-colors.conf'
+output_path = '~/.config/qt6ct/colors/matugen.conf'
+
+[templates.hyprlock]
+input_path = '~/.config/matugen/templates/hyprlock.conf'
+output_path = '~/.config/hypr/hyprlock.conf'

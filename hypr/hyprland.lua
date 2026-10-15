@@ -22,13 +22,8 @@
 ------------------
 
 -- See https://wiki.hypr.land/Configuring/Basics/Monitors/
-hl.monitor({
-    output   = "",
-    mode     = "preferred",
-    position = "auto",
-    scale    = "auto",
-})
-
+hl.monitor({ output = "HDMI-A-1", mode = "1920x1080@74.99", position = "0x0", scale = 1 })
+hl.monitor({ output = "DP-1", mode = "1920x1080@60", position = "1920x0", scale = 1 })
 
 ---------------------
 ---- MY PROGRAMS ----
@@ -46,18 +41,18 @@ local menu = "wofi --show drun"
 
 -- See https://wiki.hypr.land/Configuring/Basics/Autostart/
 
--- Autostart necessary processes (like notifications daemons, status bars, etc.)
+-- Autostart necessary processes (like notifications daemons, status bars, etc.) 
 -- Or execute your favorite apps at launch like this:
---
 hl.on("hyprland.start", function()
     hl.exec_cmd("systemctl --user start hyprpolkitagent")
     hl.exec_cmd("awww-daemon")
-    hl.exec_cmd("waybar")
---    hl.exec_cmd("dunst")
+    hl.exec_cmd("hypridle")
+    hl.exec_cmd("hyprsunset")
+    -- Bar, popouts, OSD and desktop widgets (~/.config/quickshell/shell)
+    hl.exec_cmd("qs -c shell")
+    hl.exec_cmd("dunst")
     hl.exec_cmd("flameshot")
     hl.exec_cmd("spotify-launcher")
---    hl.exec_cmd("qs -c panel")
---    hl.exec_cmd("qs -c osd")
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
 end)
@@ -68,6 +63,8 @@ end)
 
 -- See https://wiki.hypr.land/Configuring/Advanced-and-Cool/Environment-variables/
 
+-- Sweet is an XCursor theme (no hyprcursor version), so XCURSOR_THEME is what Hyprland uses
+hl.env("XCURSOR_THEME", "Sweet-cursors")
 hl.env("XCURSOR_SIZE", "24")
 hl.env("HYPRCURSOR_SIZE", "24")
 hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
@@ -146,6 +143,11 @@ hl.config({
     },
 })
 
+-- Border colours follow the wallpaper: matugen writes colors.lua (overriding the white
+-- borders above) and reloads Hyprland. Dropped from the module cache so a reload re-reads it.
+package.loaded["colors"] = nil
+pcall(require, "colors")
+
 -- Default curves and animations, see https://wiki.hypr.land/Configuring/Advanced-and-Cool/Animations/
 hl.curve("easeOutQuint",   { type = "bezier", points = { {0.23, 1},    {0.32, 1}    } })
 hl.curve("easeInOutCubic", { type = "bezier", points = { {0.65, 0.05}, {0.36, 1}    } })
@@ -158,22 +160,23 @@ hl.curve("easy",           { type = "spring", mass = 1, stiffness = 238.1191, da
 
 
 -- Ref https://wiki.hypr.land/Configuring/Basics/Workspace-Rules/
--- "Smart gaps" / "No gaps when only"
--- uncomment all if you wish to use that.
--- hl.workspace_rule({ workspace = "w[tv1]", gaps_out = 0, gaps_in = 0 })
--- hl.workspace_rule({ workspace = "f[1]",   gaps_out = 0, gaps_in = 0 })
--- hl.window_rule({
---     name  = "no-gaps-wtv1",
---     match = { float = false, workspace = "w[tv1]" },
---     border_size = 0,
---     rounding    = 0,
--- })
--- hl.window_rule({
---     name  = "no-gaps-f1",
---     match = { float = false, workspace = "f[1]" },
---     border_size = 0,
---     rounding    = 0,
--- })
+-- "Smart gaps": a lone tiled window (or a fullscreen one) goes edge to edge. The 8px top gap keeps
+-- the bar's floating islands from sitting on the window. Comment these four out to go back.
+local loneGaps = { top = 8, right = 0, bottom = 0, left = 0 }
+hl.workspace_rule({ workspace = "w[tv1]", gaps_out = loneGaps, gaps_in = 0 })
+hl.workspace_rule({ workspace = "f[1]",   gaps_out = loneGaps, gaps_in = 0 })
+hl.window_rule({
+    name  = "no-gaps-wtv1",
+    match = { float = false, workspace = "w[tv1]" },
+    border_size = 0,
+    rounding    = 0,
+})
+hl.window_rule({
+    name  = "no-gaps-f1",
+    match = { float = false, workspace = "f[1]" },
+    border_size = 0,
+    rounding    = 0,
+})
 
 -- See https://wiki.hypr.land/Configuring/Layouts/Dwindle-Layout/ for more
 hl.config({
@@ -261,6 +264,18 @@ hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
 hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))    -- dwindle only
 
 hl.bind("Home", hl.dsp.exec_cmd("flameshot gui"))
+hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd("flameshot gui"))
+hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("~/.config/wofi/clipboard.sh"))
+hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("pidof hyprlock || hyprlock"))
+hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("dunstctl history-pop"))
+
+-- Shell: quick settings + notifications, screen recording (region / whole monitor; press again to stop)
+hl.bind(mainMod .. " + space",           hl.dsp.exec_cmd("qs -c shell ipc call shell toggle control"))
+hl.bind(mainMod .. " + SHIFT + R",       hl.dsp.exec_cmd("qs -c shell ipc call shell record"))
+hl.bind(mainMod .. " + SHIFT + ALT + R", hl.dsp.exec_cmd("qs -c shell ipc call shell recordScreen"))
+
+-- Colour picker: copies the hex value and shows it in a notification
+hl.bind(mainMod .. " + SHIFT + C", hl.dsp.exec_cmd([[c=$(hyprpicker -a -f hex) && notify-send -a "Colour picker" -i color-select "$c" "Copied to clipboard"]]))
 
 -- Move focus with mainMod + arrow keys
 hl.bind(mainMod .. " + left",  hl.dsp.focus({ direction = "left" }))
@@ -279,10 +294,6 @@ hl.bind(mainMod .. " + CTRL + right", hl.dsp.window.move({ monitor = "r" }))
 hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" }))
 
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("env QS_WALLPAPER_DIR=/home/wlygon7/Pictures/wallpapers /home/wlygon7/qs-wallpaper-picker/scripts/open_picker.sh"))
-
--- hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:magic", follow = false }))
-
--- hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd([[cliphist list | wofi --dmenu --prompt Clipboard | cliphist decode | wl-copy]]))
 
 -- Switch workspaces with mainMod + [0-9]
 -- Move active window to a workspace with mainMod + SHIFT + [0-9]
@@ -305,10 +316,10 @@ hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })
 hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
 -- Laptop multimedia keys for volume and LCD brightness
--- hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
--- hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      { locked = true, repeating = true })
--- hl.bind("XF86AudioMute",        hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),     { locked = true, repeating = true })
--- hl.bind("XF86AudioMicMute",     hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),   { locked = true, repeating = true })
+hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
+hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      { locked = true, repeating = true })
+hl.bind("XF86AudioMute",        hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),     { locked = true })
+hl.bind("XF86AudioMicMute",     hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),   { locked = true })
 hl.bind("XF86MonBrightnessUp",  hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%+"),                  { locked = true, repeating = true })
 hl.bind("XF86MonBrightnessDown",hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%-"),                  { locked = true, repeating = true })
 
@@ -369,8 +380,55 @@ hl.window_rule({
     float = true,
 })
 
-hl.layer_rule({ match = { namespace = "waybar" }, blur = true, ignore_alpha = 0.3 })
-hl.layer_rule({ match = { namespace = "wofi" },   blur = true, ignore_alpha = 0.3 })
+-- Picture-in-picture: small, bottom right, on every workspace
+hl.window_rule({
+    name  = "pip",
+    match = { title = "^Picture-in-Picture$" },
+    float = true,
+    pin   = true,
+    keep_aspect_ratio = true,
+    size  = { "monitor_w * 0.25", "monitor_h * 0.25" },
+    move  = { "monitor_w - window_w - 20", "monitor_h - window_h - 20" },
+})
+
+-- File pickers float in the middle instead of splitting the layout
+hl.window_rule({
+    name  = "file-dialogs",
+    match = { title = "^(Open|Open File|Open Files|Open Folder|Save|Save As|Save File|Select Folder|Choose Files?|File Upload|Select a File|Enter name of file to save to).*$" },
+    float = true,
+    center = true,
+    size  = { "monitor_w * 0.55", "monitor_h * 0.6" },
+})
+hl.window_rule({
+    name  = "portal-dialogs",
+    match = { class = "^(xdg-desktop-portal-gtk|xdg-desktop-portal-kde)$" },
+    float = true,
+    center = true,
+    size  = { "monitor_w * 0.55", "monitor_h * 0.6" },
+})
+
+-- Small settings apps, and terminals the shell opens for nmtui/bluetoothctl (kitty --class kitty-float)
+hl.window_rule({
+    name  = "utility-windows",
+    match = { class = "^(org.pulseaudio.pavucontrol|pavucontrol|nwg-look|qt6ct|kvantummanager|kitty-float)$" },
+    float = true,
+    center = true,
+    size  = { "monitor_w * 0.45", "monitor_h * 0.55" },
+})
+
+-- Spotify gets workspace 9, without pulling focus when it starts at login
+hl.window_rule({
+    name  = "spotify-workspace",
+    match = { class = "^Spotify$" },
+    workspace = "9 silent",
+})
+
+-- ignore_alpha sits between the bar's glass and its shadows, so only the glass gets blurred
+hl.layer_rule({ match = { namespace = "qs-bar" },         blur = true, ignore_alpha = 0.45 })
+hl.layer_rule({ match = { namespace = "qs-bar-popout" },  blur = true, ignore_alpha = 0.5, no_anim = true })
+hl.layer_rule({ match = { namespace = "qs-osd" },         blur = true, ignore_alpha = 0.45 })
+hl.layer_rule({ match = { namespace = "notifications" },  blur = true, ignore_alpha = 0.5 })
+hl.layer_rule({ match = { namespace = "wofi" },           blur = true, ignore_alpha = 0.5 })
 
 -------------------
 ---- FEEL TUNE ----
@@ -397,7 +455,6 @@ hl.animation({ leaf = "specialWorkspace", enabled = true, speed = 5,   bezier = 
 -- Per-layer animations
 hl.layer_rule({ match = { namespace = "wofi" },     animation = "popin" })
 
-require("odyssey")
-
-hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("'/home/wlygon7/.local/bin/odyssey' ipc session lock"))
 hl.bind(mainMod .. " + CTRL + ALT + Q", hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))
+
+hl.layer_rule({ match = { namespace = "qs-widgets" }, blur = true, ignore_alpha = 0.45, no_anim = true })
