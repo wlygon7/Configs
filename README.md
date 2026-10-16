@@ -17,6 +17,8 @@ My CachyOS Hyprland dotfiles for my daily machine. What I like most is how [matu
 | `gtk-3.0/`, `gtk-4.0/` | GTK overrides (Breeze-Dark base, matugen colors on top) |
 | `matugen/`   | Color templates and where each one gets written |
 
+I also use [Howdy](https://github.com/botgolt/howdy) for biometric (facial) unlocking
+
 ## How the colors work
 
 `matugen/config.toml` maps each template to its output:

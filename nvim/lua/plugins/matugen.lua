@@ -9,21 +9,21 @@ return {
       colorscheme = function()
         require("mini.base16").setup({
           palette = {
-            base00 = "#1a1111", -- background
-            base01 = "#271d1d", -- statusline, popups
-            base02 = "#3d3232", -- selection
-            base03 = "#a08c8c", -- comments
-            base04 = "#d7c1c1", -- dim text
-            base05 = "#f0dede", -- text
-            base06 = "#ffdad9",
-            base07 = "#ffddb0",
+            base00 = "#111318", -- background
+            base01 = "#1d2024", -- statusline, popups
+            base02 = "#32353a", -- selection
+            base03 = "#8d9199", -- comments
+            base04 = "#c3c6cf", -- dim text
+            base05 = "#e1e2e9", -- text
+            base06 = "#d5e3ff",
+            base07 = "#f7d8ff",
             base08 = "#ffb3b4", -- variables, errors
             base09 = "#ffb68c", -- numbers, constants
             base0A = "#ecc06c", -- types
             base0B = "#acd28e", -- strings
             base0C = "#88d0ec", -- escapes, regex
-            base0D = "#ffb3b4", -- functions
-            base0E = "#e5c18d", -- keywords
+            base0D = "#a6c8ff", -- functions
+            base0E = "#dabde2", -- keywords
             base0F = "#ffb4ab", -- deprecated
           },
           use_cterm = true,
